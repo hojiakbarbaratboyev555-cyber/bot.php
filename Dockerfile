@@ -1,25 +1,25 @@
-# Boshlang'ich image: PHP CLI
-FROM php:8.2-cli
+# PHP 8.2 CLI + Apache
+FROM php:8.2-apache
 
-# PHP uchun MySQL extension o'rnatish
+# Kerakli extensionlar
 RUN docker-php-ext-install mysqli
+RUN apt-get update && apt-get install -y curl unzip
 
-# Ish papkasini yaratish
-WORKDIR /app
+# Apache rewrite qo'llab-quvvatlash
+RUN a2enmod rewrite
 
-# Local fayllarni konteynerga nusxalash
-COPY . /app
+# Ishchi papka
+WORKDIR /var/www/html
 
-# Composer o'rnatish (agar kerak bo'lsa)
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
-    php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
-    php -r "unlink('composer-setup.php');"
+# Loyihani konteynerga nusxalash
+COPY . /var/www/html
 
-# Agar composer.json bo'lsa, dependencylarni o'rnatish
-RUN composer install
+# Fayl huquqlarini to‘g‘irlash
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 755 /var/www/html
 
-# Server portini ochish
-EXPOSE 10000
+# Apache port
+EXPOSE 80
 
-# PHP built-in serverni ishga tushirish
-CMD ["php", "-S", "0.0.0.0:10000"]
+# Apache ishga tushadi
+CMD ["apache2-foreground"]
